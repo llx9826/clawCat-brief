@@ -1,188 +1,197 @@
 # 🦞 LunaClaw Brief
 
-> **Plugin-based intelligent report engine — AI-powered, extensible daily/weekly briefing system.**  
-> 插件化智能简报引擎 — 由 AI 驱动，可扩展的日/周报生成系统。
+**Pluggable AI-Powered Report Engine** | 插件化 AI 智能简报引擎
 
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.0.0-orange.svg)](skill.yaml)
+> Built with ❤️ by **llx** & **Luna** 🐱 (a brown tabby Maine Coon)
 
 ---
 
-## Features
+## What is LunaClaw Brief?
 
-- 🔌 **Plugin Architecture** — Add sources, editors, and presets without modifying core code
-- 📊 **Smart Curation** — Multi-dimensional scoring, deduplication, and quality gates
-- 🤖 **LLM-Powered Editing** — Sharp or neutral editorial tone with auto-retry
-- 📧 **Email Delivery** — HTML body + optional PDF attachment via SMTP
-- 🎨 **Customizable Templates** — Jinja2 + Design System CSS for professional output
+LunaClaw Brief is an extensible report generation engine that fetches content from multiple sources, scores and selects the most relevant items, generates opinionated reports via LLM, and renders them into beautiful HTML/PDF with email delivery.
 
-## Architecture
+LunaClaw Brief 是一个可扩展的报告生成引擎，从多个数据源抓取内容，通过多维打分选材，由 LLM 生成有观点的深度报告，渲染为精美的 HTML/PDF 并支持邮件推送。
+
+## Architecture / 架构
 
 ```
-┌──────┐   ┌───────┐   ┌───────┐   ┌──────┐   ┌──────────┐   ┌─────────┐   ┌───────┐   ┌───────┐
-│Fetch │ → │ Score │ → │Select │ → │Dedup │ → │Edit(LLM) │ → │ Quality │ → │Render │ → │ Email │
-└──────┘   └───────┘   └───────┘   └──────┘   └──────────┘   └─────────┘   └───────┘   └───────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    ReportPipeline                            │
+│  ┌───────┐  ┌───────┐  ┌────────┐  ┌───────┐  ┌─────────┐ │
+│  │ Fetch │→│ Score │→│ Select │→│ Dedup │→│  Edit   │ │
+│  │(async)│  │(multi)│  │(Top-K) │  │(hist) │  │  (LLM)  │ │
+│  └───────┘  └───────┘  └────────┘  └───────┘  └─────────┘ │
+│       ↓                                             ↓       │
+│  ┌─────────┐                              ┌─────────────┐  │
+│  │ Quality │←────────────────────────────│   Render    │  │
+│  │  Check  │                              │(Jinja2+PDF) │  │
+│  └─────────┘                              └─────────────┘  │
+│       ↓                                             ↓       │
+│  ┌─────────┐                              ┌─────────────┐  │
+│  │  Retry  │                              │   Email     │  │
+│  │ (if<70%)│                              │ (HTML+PDF)  │  │
+│  └─────────┘                              └─────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│  MiddlewareChain: Timing · Metrics · Custom Hooks           │
+│  BriefLogger: Structured logging with phase context          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-| Stage | Description |
-|-------|-------------|
-| **Fetch** | Aggregate items from GitHub, arXiv, Hacker News, Papers with Code, FinNews |
-| **Score** | Multi-dimensional relevance scoring (domain keywords, source weights) |
-| **Select** | Top-K selection by composite score |
-| **Dedup** | Filter items already covered in recent issues |
-| **Edit (LLM)** | Generate report draft with LLM (exponential backoff retry) |
-| **Quality** | Validate sections and word count; retry if below threshold |
-| **Render** | Jinja2 HTML + optional WeasyPrint PDF |
-| **Email** | Send via SMTP (optional) |
+## Design Patterns / 设计模式
 
-## Design Patterns
+| Pattern | Application | 应用 |
+|---------|-------------|------|
+| **Adapter** | `BaseSource` → GitHub / arXiv / HN / PwC / FinNews | 数据源统一接口 |
+| **Strategy** | `BaseEditor` → WeeklyEditor / DailyEditor / FinanceEditor | 不同 LLM prompt 策略 |
+| **Pipeline** | `ReportPipeline` — 8-stage flow | 8 阶段管线 |
+| **Registry** | `@register_source` / `@register_editor` decorators | 装饰器零配置注册 |
+| **Observer** | `MiddlewareChain` + `PipelineMiddleware` | 管线钩子系统 |
+| **Factory** | `create_sources()` / `create_editor()` | 工厂函数动态创建 |
+| **Dataclass** | `Item` / `ScoredItem` / `PresetConfig` / `ReportDraft` | 强类型数据模型 |
+| **Cache** | `FileCache` with TTL | 文件级 TTL 缓存 |
 
-| Pattern | Usage |
-|---------|-------|
-| **Adapter** | `BaseSource` provides a unified interface for disparate data sources |
-| **Strategy** | `BaseEditor` implements different prompt strategies per preset |
-| **Pipeline** | `ReportPipeline` orchestrates 8 sequential stages |
-| **Observer/Middleware** | `MiddlewareChain` for timing, metrics, and custom hooks |
-| **Registry** | Decorator-based `SourceRegistry`, `EditorRegistry` for plugin discovery |
-| **Factory** | `create_sources()`, `create_editor()` resolve by name |
-| **Dataclass** | `Item`, `ScoredItem`, `PresetConfig` for type-safe data flow |
+## Presets / 预设
 
----
+| Preset | Description | Sources |
+|--------|-------------|---------|
+| `ai_cv_weekly` | AI/CV tech deep-dive weekly | GitHub, arXiv, HN, PwC |
+| `ai_daily` | AI tech daily brief | GitHub, arXiv, HN |
+| `finance_weekly` | Investment-oriented market weekly | FinNews, HN |
+| `finance_daily` | Market flash daily | FinNews, HN |
 
-## Installation
+## Quick Start / 快速开始
 
 ```bash
-git clone <repo-url>
-cd ai-cv-weekly
+# Install dependencies
 pip install -r requirements.txt
-```
 
-Create `config.local.yaml` for secrets (API keys, tokens, email credentials):
-
-```yaml
+# Configure LLM key (create config.local.yaml, gitignored)
+cat > config.local.yaml << 'EOF'
 llm:
-  api_key: "your-llm-api-key"
-github:
-  token: "your-github-token"
-email:
-  sender_email: "your@email.com"
-  password: "app-password"
-  to_emails: ["subscriber@example.com"]
-```
+  api_key: "your-api-key-here"
+EOF
 
----
-
-## Quick Start
-
-```bash
-# Default: AI/CV Weekly report
+# Generate AI/CV Weekly (default)
 python run.py
 
-# AI Daily brief
+# Generate AI Daily Brief
 python run.py --preset ai_daily
 
-# Finance Weekly
+# Generate Finance Weekly
 python run.py --preset finance_weekly
 
-# Finance Daily
-python run.py --preset finance_daily
-
-# Generate and send email
+# Generate and send via email
 python run.py --preset ai_cv_weekly --email
 
-# With custom hint for the LLM
-python run.py --hint "Focus on OCR and document understanding this week"
+# Custom hint for LLM
+python run.py --hint "focus on OCR and document AI"
 ```
 
-## Available Presets
-
-| Preset | Description |
-|--------|-------------|
-| `ai_cv_weekly` | Deep-dive AI/CV tech weekly (GitHub, arXiv, HN, PwC) |
-| `ai_daily` | Quick AI tech daily brief |
-| `finance_weekly` | Investment-oriented market weekly (FinNews, HN) |
-| `finance_daily` | Market flash daily |
-
----
-
-## Project Structure
+## Project Structure / 项目结构
 
 ```
-ai-cv-weekly/
-├── run.py                 # CLI entry point
-├── config.yaml            # Base config (non-sensitive)
-├── config.local.yaml      # Secrets (gitignored)
-├── skill.yaml             # OpenClaw skill manifest
-├── requirements.txt
-├── brief/
-│   ├── pipeline.py        # 8-stage ReportPipeline
-│   ├── presets.py         # PresetConfig definitions
-│   ├── models.py          # Item, ScoredItem, PresetConfig, etc.
-│   ├── registry.py        # SourceRegistry, EditorRegistry
-│   ├── sources/           # Data source adapters
-│   │   ├── github.py
-│   │   ├── arxiv.py
-│   │   ├── hackernews.py
-│   │   ├── paperswithcode.py
-│   │   └── finnews.py
-│   ├── editors/           # LLM editor strategies
-│   │   ├── weekly.py
-│   │   ├── daily.py
-│   │   └── finance.py
-│   ├── scoring.py
-│   ├── dedup.py
-│   ├── quality.py
-│   ├── middleware.py
-│   └── renderer/
-├── templates/             # Jinja2 HTML
-│   ├── base.html
-│   ├── weekly.html
-│   ├── daily.html
-│   └── finance.html
-├── static/                # CSS, assets
-├── data/                  # used_items.json, issue_counter.json
-└── output/                # Generated reports
+lunaclaw-brief/
+├── brief/                          # Core engine / 核心引擎
+│   ├── models.py                   # Data models (Item, ScoredItem, PresetConfig...)
+│   ├── presets.py                  # Preset definitions (4 presets)
+│   ├── pipeline.py                 # 8-stage ReportPipeline + Middleware
+│   ├── registry.py                 # Plugin Registry (@register_source/editor)
+│   ├── middleware.py               # Pipeline hooks (Timing, Metrics, Custom)
+│   ├── log.py                      # Structured logging with context binding
+│   ├── cache.py                    # File-based TTL cache
+│   ├── scoring.py                  # Multi-dimensional Scorer + Selector
+│   ├── dedup.py                    # Historical dedup (UsedItemStore) + IssueCounter
+│   ├── quality.py                  # LLM output QualityChecker
+│   ├── llm.py                      # OpenAI-compatible LLM client
+│   ├── sender.py                   # Email sender (HTML + PDF attachment)
+│   ├── sources/                    # Data source adapters
+│   │   ├── base.py                 #   BaseSource (abstract)
+│   │   ├── github.py               #   GitHub (with competitor discovery)
+│   │   ├── arxiv.py                #   arXiv papers
+│   │   ├── hackernews.py           #   Hacker News
+│   │   ├── paperswithcode.py       #   Papers with Code
+│   │   └── finnews.py              #   Financial news (HN + RSS)
+│   ├── editors/                    # LLM editor strategies
+│   │   ├── base.py                 #   BaseEditor (retry + backoff)
+│   │   ├── weekly.py               #   Tech weekly (with project comparison)
+│   │   ├── daily.py                #   Tech daily
+│   │   └── finance.py              #   Finance weekly + daily
+│   └── renderer/                   # Rendering layer
+│       ├── markdown_parser.py      #   Markdown → structured sections
+│       └── jinja2.py               #   Jinja2 + WeasyPrint PDF
+├── templates/                      # Jinja2 templates
+│   ├── base.html                   #   Base layout (with Luna logo)
+│   ├── weekly.html                 #   Tech weekly template
+│   ├── daily.html                  #   Daily template
+│   └── finance.html                #   Finance template (with disclaimer)
+├── static/                         # Static assets
+│   ├── style.css                   #   Design system (dark theme + print)
+│   ├── luna_logo.png               #   Luna mascot logo
+│   └── luna_logo_sm.png            #   Logo (small, for HTML embed)
+├── run.py                          # CLI + OpenClaw Skill entry point
+├── config.yaml                     # Global config (non-secret)
+├── skill.yaml                      # OpenClaw Skill definition
+├── requirements.txt                # Python dependencies
+└── SKILL.md                        # Skill documentation
 ```
 
----
+## Extending / 扩展指南
 
-## How to Extend
+### Add a new data source / 新增数据源
 
-### Add a Source
+```python
+# brief/sources/my_source.py
+from brief.sources.base import BaseSource
+from brief.registry import register_source
 
-1. Create `brief/sources/your_source.py`, inherit `BaseSource`
-2. Implement `async def fetch(since, until) -> list[Item]`
-3. Use `@register_source("your_source")` and add import in `brief/sources/__init__.py`
+@register_source("my_source")
+class MySource(BaseSource):
+    name = "my_source"
 
-### Add an Editor
+    async def fetch(self, since, until) -> list[Item]:
+        # Your fetching logic here
+        ...
+```
 
-1. Create `brief/editors/your_editor.py`, inherit `BaseEditor`
-2. Implement `_build_system_prompt()` and `_build_user_prompt()`
-3. Use `@register_editor("your_editor")` and add import in `brief/editors/__init__.py`
+### Add a new preset / 新增预设
 
-### Add a Preset
+```python
+# In brief/presets.py
+MY_PRESET = PresetConfig(
+    name="my_preset",
+    display_name="My Custom Report",
+    cycle="weekly",
+    editor_type="tech_weekly",
+    sources=["my_source", "github"],
+    ...
+)
+PRESETS["my_preset"] = MY_PRESET
+```
 
-1. Define `PresetConfig` in `brief/presets.py`
-2. Add to `PRESETS` dict
+### Add a custom middleware / 自定义中间件
 
-### Add a Template
+```python
+from brief.middleware import PipelineMiddleware, PipelineContext
 
-1. Create `templates/your_template.html` (extend `base.html`)
-2. Set `template="your_template"` in the preset
+class SlackNotifyMiddleware(PipelineMiddleware):
+    def on_pipeline_end(self, ctx: PipelineContext):
+        send_slack(f"Report #{ctx.issue_number} generated in {ctx.elapsed:.0f}s")
 
----
+pipeline.use(SlackNotifyMiddleware())
+```
 
-## Contributing
+## Tech Stack / 技术栈
 
-Contributions are welcome. Please open an issue or submit a PR.
-
----
+- **Python 3.10+** — async/await, dataclasses, type hints
+- **aiohttp** — async HTTP for parallel source fetching
+- **Jinja2** — template rendering
+- **WeasyPrint** — HTML → PDF (optional)
+- **OpenAI-compatible API** — LLM content generation
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT
 
 ---
 
-Built with ❤️ by llx & Luna 🐱
+*LunaClaw Brief — where Luna holds the claws, and the claws hold the truth.* 🦞🐱

@@ -1,4 +1,7 @@
-"""LunaClaw Brief — Hacker News 数据源"""
+"""LunaClaw Brief — Hacker News Source
+
+Fetches stories from Hacker News via Algolia API (Hacker News 数据源).
+"""
 
 from datetime import datetime
 
@@ -11,6 +14,8 @@ from brief.registry import register_source
 
 @register_source("hackernews")
 class HackerNewsSource(BaseSource):
+    """Hacker News source adapter using Algolia search API (基于 Algolia 的 HN 数据源)."""
+
     name = "hackernews"
 
     QUERIES = [
@@ -20,6 +25,7 @@ class HackerNewsSource(BaseSource):
     ]
 
     async def fetch(self, since: datetime, until: datetime) -> list[Item]:
+        """Fetch HN stories matching AI/CV queries from Algolia (从 Algolia 拉取 HN 故事)."""
         items: list[Item] = []
         timeout = aiohttp.ClientTimeout(total=10)
         async with aiohttp.ClientSession(timeout=timeout) as session:

@@ -1,6 +1,7 @@
-"""LunaClaw Brief — History deduplication and issue number management.
+"""LunaClaw Brief — Historical deduplication and issue number management.
 
-LunaClaw Brief — 历史去重与期号管理
+JSON-based store for tracking previously used items and managing issue counters,
+preventing content repetition across report issues.
 """
 
 import json
@@ -11,7 +12,7 @@ from brief.models import Item
 
 
 class UsedItemStore:
-    """基于 JSON 文件的历史已用内容索引"""
+    """JSON-based index of historically used content."""
 
     def __init__(self, path: Path):
         self.path = path
@@ -33,7 +34,7 @@ class UsedItemStore:
         )
 
     def filter_unseen(self, items: list[Item], window_days: int) -> list[Item]:
-        """过滤掉 window_days 内用过的条目"""
+        """Filter out items used within the given window_days."""
         cutoff = (datetime.now() - timedelta(days=window_days)).isoformat()
         result: list[Item] = []
         for item in items:
@@ -43,7 +44,7 @@ class UsedItemStore:
         return result
 
     def mark_used(self, items: list[Item], issue_number: int):
-        """把本次使用的条目记录到历史"""
+        """Record the currently used items into history."""
         now = datetime.now().isoformat()
         for item in items:
             self._data[item.item_id] = {
@@ -56,7 +57,7 @@ class UsedItemStore:
 
 
 class IssueCounter:
-    """线程安全的期号计数器"""
+    """Thread-safe issue number counter."""
 
     def __init__(self, data_dir: Path):
         self.path = data_dir / "issue_counter.json"

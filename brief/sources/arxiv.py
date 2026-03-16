@@ -1,4 +1,7 @@
-"""LunaClaw Brief — arXiv 数据源"""
+"""LunaClaw Brief — arXiv Source
+
+Fetches papers from arXiv API (arXiv 数据源).
+"""
 
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -12,6 +15,8 @@ from brief.registry import register_source
 
 @register_source("arxiv")
 class ArxivSource(BaseSource):
+    """arXiv source adapter fetching papers from cs.CV and cs.LG (arXiv 论文数据源)."""
+
     name = "arxiv"
 
     QUERIES = [
@@ -20,6 +25,7 @@ class ArxivSource(BaseSource):
     ]
 
     async def fetch(self, since: datetime, until: datetime) -> list[Item]:
+        """Fetch papers from arXiv API for cs.CV and cs.LG (从 arXiv 拉取论文)."""
         items: list[Item] = []
         timeout = aiohttp.ClientTimeout(total=15)
         async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -36,6 +42,7 @@ class ArxivSource(BaseSource):
 
     @staticmethod
     def _parse_atom(xml_content: str) -> list[Item]:
+        """Parse arXiv Atom XML feed into Item list (解析 Atom XML 为条目列表)."""
         items: list[Item] = []
         try:
             root = ET.fromstring(xml_content)

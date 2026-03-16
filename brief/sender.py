@@ -1,6 +1,6 @@
 """LunaClaw Brief — Email sending.
 
-LunaClaw Brief — 邮件发送
+SMTP-based email delivery with support for HTML content and PDF attachments.
 """
 
 import os
@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 class EmailSender:
-    """SMTP 邮件发送（支持 HTML + PDF 附件）"""
+    """SMTP email sender supporting HTML content and PDF attachments."""
 
     def __init__(self, email_config: dict):
         self.config = email_config
@@ -27,6 +27,7 @@ class EmailSender:
         to_email: str | None = None,
         attachment_path: str | None = None,
     ) -> bool:
+        """Send an email with optional PDF attachment. Returns True on success."""
         recipients = []
         if to_email:
             recipients = [to_email]

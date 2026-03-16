@@ -1,6 +1,7 @@
-"""LunaClaw Brief — 金融资讯数据源
+"""LunaClaw Brief — Financial News Source
 
-聚合 Hacker News 金融板块 + Finnhub 新闻 + 通用金融 RSS。
+Aggregates Hacker News finance section, Finnhub news, and general finance RSS feeds
+(金融资讯数据源：聚合 Hacker News 金融板块 + Finnhub 新闻 + 通用金融 RSS).
 """
 
 import xml.etree.ElementTree as ET
@@ -16,6 +17,8 @@ from brief.registry import register_source
 
 @register_source("finnews")
 class FinNewsSource(BaseSource):
+    """Financial news aggregator combining HN finance + RSS feeds (金融资讯聚合)."""
+
     name = "finnews"
 
     HN_QUERIES = [
@@ -32,10 +35,11 @@ class FinNewsSource(BaseSource):
     ]
 
     async def fetch(self, since: datetime, until: datetime) -> list[Item]:
+        """Fetch financial news from HN and RSS feeds, deduplicated (拉取金融资讯并去重)."""
         items: list[Item] = []
         timeout = aiohttp.ClientTimeout(total=12)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            # Hacker News 金融相关
+            # Hacker News finance-related
             for query in self.HN_QUERIES:
                 try:
                     url = (
@@ -68,7 +72,7 @@ class FinNewsSource(BaseSource):
                 except Exception:
                     continue
 
-            # RSS 金融新闻
+            # RSS finance feeds
             for feed_url, source_label in self.RSS_FEEDS:
                 try:
                     async with session.get(feed_url) as resp:
@@ -79,7 +83,7 @@ class FinNewsSource(BaseSource):
                 except Exception:
                     continue
 
-        # URL 去重
+        # URL deduplication
         seen: set[str] = set()
         unique: list[Item] = []
         for item in items:
@@ -90,6 +94,7 @@ class FinNewsSource(BaseSource):
 
     @staticmethod
     def _parse_rss(xml_content: str, source_label: str) -> list[Item]:
+        """Parse RSS XML feed into Item list (解析 RSS XML 为条目列表)."""
         items: list[Item] = []
         try:
             root = ET.fromstring(xml_content)

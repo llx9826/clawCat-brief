@@ -1,0 +1,23 @@
+{
+  "name": "lunaclaw-brief",
+  "display_name": "LunaClaw Brief",
+  "version": "3.0.0",
+  "description": "Pluggable AI-powered report engine with tech and finance presets, 8-stage pipeline, plugin registry, and beautiful HTML/PDF output.",
+  "category": "productivity",
+  "tags": [
+    "report",
+    "weekly",
+    "daily",
+    "AI",
+    "finance",
+    "LLM",
+    "newsletter",
+    "automation"
+  ],
+  "author": "llx9826",
+  "license": "MIT",
+  "repository": "https://github.com/llx9826/lunaclaw-brief",
+  "entry": "run.py",
+  "function": "generate_report",
+  "icon": "static/luna_logo_sm.png"
+}

@@ -1,6 +1,6 @@
 """LunaClaw Brief — Editor base class.
 
-LunaClaw Brief — Editor 基类
+Abstract base for all editors, providing LLM invocation and retry logic.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from brief.llm import LLMClient
 
 
 class BaseEditor(ABC):
-    """所有 Editor 的基类，提供 LLM 调用与重试逻辑"""
+    """Base class for all editors, providing LLM invocation and retry logic."""
 
     def __init__(self, preset: PresetConfig, llm: LLMClient):
         self.preset = preset
@@ -23,7 +23,7 @@ class BaseEditor(ABC):
     def generate(
         self, items: list[Item], issue_number: int, user_hint: str = ""
     ) -> ReportDraft | None:
-        """带指数退避重试的生成入口"""
+        """Generate a report draft with exponential-backoff retry."""
         system_prompt = self._build_system_prompt()
         user_prompt = self._build_user_prompt(items, issue_number, user_hint)
 
@@ -51,16 +51,19 @@ class BaseEditor(ABC):
 
     @abstractmethod
     def _build_system_prompt(self) -> str:
+        """Build the system prompt for the LLM."""
         ...
 
     @abstractmethod
     def _build_user_prompt(
         self, items: list[Item], issue_number: int, user_hint: str
     ) -> str:
+        """Build the user prompt for the LLM."""
         ...
 
     @staticmethod
     def _clean_markdown(response: str) -> str:
+        """Strip markdown code fence wrappers from LLM response."""
         text = response.strip()
         if text.startswith("```markdown"):
             text = text[11:]
@@ -72,6 +75,7 @@ class BaseEditor(ABC):
 
     @staticmethod
     def _backoff(attempt: int, reason: str):
+        """Apply exponential backoff delay before retry."""
         delay = min(1.0 * (2 ** attempt), 30.0) + random.uniform(0, 1)
         print(f"   [{reason}]，{delay:.1f}s 后重试 ({attempt + 1}/3)...")
         time.sleep(delay)

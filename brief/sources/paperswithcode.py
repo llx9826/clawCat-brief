@@ -1,4 +1,7 @@
-"""LunaClaw Brief — Papers with Code 数据源"""
+"""LunaClaw Brief — Papers with Code Source
+
+Fetches papers from Papers with Code API (Papers with Code 数据源).
+"""
 
 from datetime import datetime
 
@@ -11,9 +14,12 @@ from brief.registry import register_source
 
 @register_source("paperswithcode")
 class PapersWithCodeSource(BaseSource):
+    """Papers with Code source adapter fetching latest papers via API (PWC 论文数据源)."""
+
     name = "paperswithcode"
 
     async def fetch(self, since: datetime, until: datetime) -> list[Item]:
+        """Fetch latest papers from Papers with Code API (从 PWC 拉取最新论文)."""
         items: list[Item] = []
         timeout = aiohttp.ClientTimeout(total=10)
         async with aiohttp.ClientSession(timeout=timeout) as session:

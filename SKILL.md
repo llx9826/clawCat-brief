@@ -1,124 +1,92 @@
-# 🦞 LunaClaw Brief
+# 🦞 LunaClaw Brief — OpenClaw Skill
 
-**Plugin-Based Intelligent Report Engine**  
-**插件化智能简报引擎**
+**Pluggable AI-Powered Report Engine** | 插件化 AI 智能简报引擎
 
----
+## Overview / 概述
 
-## Core Capabilities | 核心能力
+LunaClaw Brief is an OpenClaw Skill that generates intelligent weekly/daily reports across multiple domains (AI/CV tech, finance/investment). It features a plugin architecture with 8-stage pipeline, multi-dimensional scoring, historical deduplication, and beautiful HTML/PDF output.
 
-| English | 中文 |
-|---------|------|
-| **Multi-Preset Support**: AI/CV weekly, AI daily, Finance weekly/daily — extendable to OCR, fintech, etc. | **多 Preset 支持**：AI/CV 周报、AI 日报、金融周/日报，可扩展至 OCR、金融科技等 |
-| **Plugin Data Sources**: GitHub, arXiv, Hacker News, Papers with Code, FinNews — extend via `BaseSource` | **插件化数据源**：GitHub、arXiv、Hacker News、Papers with Code、FinNews，实现 `BaseSource` 即可扩展 |
-| **Smart Scoring & Dedup**: Multi-dimensional scoring model + historical dedup, ensures no duplicate content | **智能打分 & 去重**：多维评分模型 + 历史去重，确保每期内容不重复 |
-| **LLM Editor**: Sharp or neutral tone, in-depth editorial with commentary | **LLM 主编**：支持 sharp/neutral 两种风格，带锐评的深度内容 |
-| **Quality Control**: Auto-check sections, word count, structure; retry on failure | **质量控制**：自动检查章节、字数、结构，不达标自动重试 |
-| **Elegant Rendering**: Jinja2 templates + Design System CSS, HTML/PDF output | **精美渲染**：Jinja2 模板 + Design System CSS，支持 HTML/PDF 输出 |
-| **Email Delivery**: HTML body + optional PDF attachment | **邮件推送**：HTML 正文 + PDF 附件 |
+LunaClaw Brief 是一个 OpenClaw Skill，可生成多领域（AI/CV 技术、金融投资）的智能周报/日报。采用插件化架构，8 阶段管线，多维打分，历史去重，精美 HTML/PDF 输出。
 
----
+## Capabilities / 核心能力
 
-## Architecture | 架构
+- **4 built-in presets**: AI/CV Weekly, AI Daily, Finance Weekly, Finance Daily
+- **6 data sources**: GitHub (with competitor discovery), arXiv, Hacker News, Papers with Code, Financial News (RSS)
+- **Smart scoring**: Domain keywords + source weights + community signals (stars, points, comments)
+- **Historical dedup**: Content fingerprinting with configurable time window
+- **LLM editor**: Sharp opinionated reviews (🦞 Claw Critique), project comparisons
+- **Quality control**: Auto-check structure/word count/sections, retry if below threshold
+- **Beautiful output**: Dark-theme HTML with Luna logo, optional PDF, email delivery
 
-8-stage pipeline with middleware hooks:
+## Usage / 使用方式
 
-```
-┌──────┐   ┌───────┐   ┌───────┐   ┌──────┐   ┌──────────┐   ┌─────────┐   ┌───────┐   ┌───────┐
-│Fetch │ → │ Score │ → │Select │ → │Dedup │ → │Edit(LLM) │ → │ Quality │ → │Render │ → │ Email │
-└──────┘   └───────┘   └───────┘   └──────┘   └──────────┘   └─────────┘   └───────┘   └───────┘
-```
-
-1. **Fetch** — Aggregate items from all configured sources (async)
-2. **Score** — Multi-dimensional relevance scoring (domain keywords, source weights)
-3. **Select** — Top-K selection by score
-4. **Dedup** — Filter out items seen in recent issues
-5. **Edit (LLM)** — Generate report draft with LLM (retry on failure)
-6. **Quality** — Validate sections, word count; retry if needed
-7. **Render** — Jinja2 HTML (+ optional WeasyPrint PDF)
-8. **Email** — Send via SMTP (optional)
-
----
-
-## Design Patterns | 设计模式
-
-| Pattern | 模式 | Application | 应用 |
-|---------|------|--------------|------|
-| **Adapter** | 适配器 | `BaseSource` → unified interface for GitHub, arXiv, HN, etc. | 各数据源统一接口 |
-| **Strategy** | 策略 | `BaseEditor` → different prompt strategies (weekly vs daily) | 周报/日报不同 prompt 策略 |
-| **Pipeline** | 管线 | `ReportPipeline` — 8 stages in sequence | 8 阶段串联 |
-| **Observer / Middleware** | 观察者/中间件 | `MiddlewareChain` — timing, metrics, custom hooks | 计时、指标、自定义钩子 |
-| **Registry** | 注册表 | `SourceRegistry`, `EditorRegistry` — decorator-based discovery | `@register_source` / `@register_editor` |
-| **Factory** | 工厂 | `create_sources()`, `create_editor()` | 按名称创建实例 |
-| **Dataclass** | 数据类 | `Item`, `ScoredItem`, `PresetConfig`, `ReportDraft` | 类型安全、不可变友好 |
-
----
-
-## Quick Start | 快速开始
+### Via CLI
 
 ```bash
-# AI/CV Weekly (default) — 生成 AI/CV 周报
-python run.py
-
-# AI Daily — 生成 AI 日报
-python run.py --preset ai_daily
-
-# Finance Weekly — 生成金融周报
-python run.py --preset finance_weekly
-
-# Finance Daily — 生成金融日报
-python run.py --preset finance_daily
-
-# With email delivery — 生成后发送邮件
-python run.py --preset ai_cv_weekly --email
-
-# With custom hint for LLM — 给 LLM 的额外提示
-python run.py --hint "本期重点关注 OCR 和文档理解方向"
+python run.py                              # AI/CV Weekly (default)
+python run.py --preset ai_daily            # AI Daily Brief
+python run.py --preset finance_weekly      # Finance Weekly
+python run.py --preset finance_daily       # Finance Daily
+python run.py --preset ai_cv_weekly --email  # Generate + send email
+python run.py --hint "focus on OCR"        # Custom hint
 ```
 
+### Via OpenClaw Skill API
+
+```python
+from run import generate_report
+
+result = generate_report({
+    "preset": "finance_weekly",
+    "hint": "重点关注半导体和 AI 芯片",
+    "send_email": True,
+})
+# result: { "success": True, "html_path": "...", "pdf_path": "...", ... }
+```
+
+### Trigger Phrases / 触发短语
+
+- "生成周报" / "generate weekly report"
+- "生成金融周报" / "generate finance report"
+- "生成日报" / "generate daily brief"
+- "AI CV 周报" / "金融日报"
+
+## Architecture / 架构亮点
+
+| Pattern | Where |
+|---------|-------|
+| Adapter | `BaseSource` → 5 source adapters |
+| Strategy | `BaseEditor` → 4 editor strategies |
+| Pipeline | 8-stage `ReportPipeline` |
+| Registry | `@register_source` / `@register_editor` decorators |
+| Observer | `MiddlewareChain` for timing, metrics, custom hooks |
+| Factory | `create_sources()` / `create_editor()` |
+| Cache | `FileCache` with TTL for API responses |
+
+## Extending / 扩展
+
+Implement `BaseSource` + `@register_source("name")` to add a data source.
+Implement `BaseEditor` + `@register_editor("name")` to add an editor strategy.
+Add a `PresetConfig` to `brief/presets.py` to create a new report type.
+Create a Jinja2 template in `templates/` for custom layouts.
+
+## Configuration / 配置
+
+Global config in `config.yaml`. Secrets in `config.local.yaml` (gitignored).
+
+```yaml
+# config.local.yaml
+llm:
+  api_key: "your-key"
+```
+
+## Output / 输出
+
+- **HTML**: Self-contained with embedded Luna logo, dark theme
+- **Markdown**: Raw LLM output for further processing
+- **PDF**: Via WeasyPrint (optional dependency)
+- **Email**: HTML body + PDF attachment
+
 ---
 
-## Extension Guide | 扩展指南
-
-### Add a new Source | 添加新数据源
-
-1. Create `brief/sources/your_source.py`
-2. Inherit `BaseSource`, implement `fetch(since, until) -> list[Item]`
-3. Register: `@register_source("your_source")` (from `brief.registry`)
-4. Add `import brief.sources.your_source` in `brief/sources/__init__.py`
-
-### Add a new Editor | 添加新编辑器
-
-1. Create `brief/editors/your_editor.py`
-2. Inherit `BaseEditor`, implement `_build_system_prompt()` and `_build_user_prompt()`
-3. Register: `@register_editor("your_editor")`
-4. Add import in `brief/editors/__init__.py`
-
-### Add a new Preset | 添加新 Preset
-
-1. In `brief/presets.py`, define `PresetConfig(name=..., sources=..., editor_type=..., ...)`
-2. Add to `PRESETS` dict: `PRESETS["your_preset"] = YourPreset`
-
-### Add a new Template | 添加新模板
-
-1. Create `templates/your_template.html` (extend `base.html`)
-2. Set `template="your_template"` in the Preset
-
----
-
-## Tech Stack | 技术栈
-
-| Layer | Technology |
-|-------|------------|
-| **Language** | Python 3.10+ |
-| **Async I/O** | `aiohttp`, `asyncio` |
-| **LLM** | OpenAI-compatible API (Kimi, DashScope) |
-| **Template** | Jinja2 |
-| **Config** | YAML (`config.yaml` + `config.local.yaml`) |
-| **PDF** | WeasyPrint (optional) |
-| **Email** | SMTP (smtplib) |
-| **Deps** | `requests`, `pyyaml`, `jinja2`, `aiohttp` |
-
----
-
-Built with ❤️ by llx & Luna 🐱
+*Built by llx & Luna 🐱 — where the claw meets the code.* 🦞
