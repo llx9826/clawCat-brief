@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Header -->
+<header class="header-card rounded-3xl p-6 md:p-10 mb-8 relative overflow-hidden">
+    <!-- 背景装饰 -->
+    <div class="header-bg-decoration"></div>
+    
+    <div class="relative z-10 text-center">
+        <!-- Logo -->
+        <div class="logo-wrapper mb-4">
+            <span class="logo-emoji">🦞</span>
+        </div>
+        
+        <!-- 标题 -->
+        <h1 class="header-title text-3xl md:text-5xl font-black mb-3">
+            AI/CV Weekly
+        </h1>
+        
+        <!-- 期号和日期 -->
+        <div class="header-meta">
+            <span class="issue-badge">第 {{ issue_number }} 期</span>
+            <span class="date-range">{{ time_range }}</span>
+        </div>
+        
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">{{ stats.total_items }}</div>
+                <div class="stat-label">原始数据</div>
+            </div>
+            <div class="stat-box stat-box-highlight">
+                <div class="stat-number">{{ stats.cv_count }}</div>
+                <div class="stat-label">CV/OCR</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ stats.source_count }}</div>
+                <div class="stat-label">数据源</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Sections -->
+<main>
+    {% for section in sections %}
+    <section class="section-card {{ section.css_class }} {{ section.bg_class }} dark:bg-gray-800/50">
+        <div class="section-header">
+            <div class="section-icon-wrapper bg-gradient-to-br {{ section.gradient }}">
+                <span class="section-icon">{{ section.icon }}</span>
+            </div>
+            <h2 class="section-title">{{ section.title }}</h2>
+        </div>
+        <div class="section-content">
+            {{ section.content | safe }}
+        </div>
+    </section>
+    {% endfor %}
+</main>
+
+<!-- Footer -->
+<footer class="text-center py-8 md:py-12 text-gray-500 dark:text-gray-400">
+    <div class="text-4xl mb-3">🦞</div>
+    <p class="font-semibold text-gray-700 dark:text-gray-300 mb-1">AI/CV Weekly</p>
+    <p class="text-xs">{{ generated_at }}</p>
+</footer>
+{% endblock %}

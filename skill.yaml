@@ -1,0 +1,109 @@
+name: ai-cv-weekly
+description: |
+  AI/CV Weekly 周报自动生成器
+  专注 CV/OCR/多模态领域，一键生成专业周报
+  数据源：90+ RSS 源、GitHub、arXiv、技术媒体
+version: 2.1.0
+author: 李 claw
+entrypoint: run.py
+category: automation
+tags:
+  - weekly-report
+  - ai-cv
+  - ocr
+  - computer-vision
+  - automation
+  - newsletter
+  - data-collection
+
+# OpenClaw 标准配置
+openclaw:
+  min_version: "0.5.0"
+  permissions:
+    - network
+    - filesystem
+    - email
+  
+config:
+  llm_mode:
+    type: string
+    default: "required"
+    description: "LLM 模式：required/optional"
+    enum: ["required", "optional"]
+  
+  max_items:
+    type: integer
+    default: 35
+    description: "最大选取条目数"
+    minimum: 10
+    maximum: 100
+  
+  time_range_days:
+    type: integer
+    default: 7
+    description: "抓取时间范围（天）"
+    minimum: 1
+    maximum: 30
+  
+  send_email:
+    type: boolean
+    default: true
+    description: "是否发送邮件"
+
+outputs:
+  - name: status
+    type: string
+    description: "执行状态：success/failed"
+  
+  - name: issue_number
+    type: integer
+    description: "期号"
+  
+  - name: html_path
+    type: string
+    description: "HTML 文件路径"
+  
+  - name: md_path
+    type: string
+    description: "Markdown 文件路径"
+  
+  - name: message
+    type: string
+    description: "结果消息"
+  
+  - name: stats
+    type: object
+    description: "数据统计信息"
+
+triggers:
+  - type: schedule
+    cron: "0 9 * * 1"
+    description: "每周一上午 9 点自动生成"
+    timezone: "Asia/Shanghai"
+  
+  - type: command
+    command: "/ai_cv_weekly"
+    description: "手动触发周报生成"
+  
+  - type: intent
+    pattern: "生成.*周报|weekly.*report|ai.*cv.*weekly"
+    description: "自然语言触发"
+
+# 依赖
+dependencies:
+  python: ">=3.8"
+  packages:
+    - aiohttp
+    - pyyaml
+    - requests
+    - python-dateutil
+  
+# 外部服务
+services:
+  - name: llm
+    required: true
+    description: "LLM 服务用于生成周报内容"
+  
+  - name: email
+    required: false
+    description: "邮件服务用于发送周报"
