@@ -18,7 +18,11 @@ SELECT_SYSTEM = """\
 你是一位简报编辑。请从候选素材中选出最多 {max_items} 条，用于 {period} {topic} 报告。
 时间范围：{since} ~ {until}
 
-选择优先级：主题相关性 > 多样性 > 时效性 > 数据丰富度。
+【核心关注维度】（不符合以下维度的素材严禁选入）：
+{focus_areas}
+
+选择优先级：维度匹配度 > 主题相关性 > 多样性 > 时效性 > 数据丰富度。
+与核心关注维度无关的素材必须排除，无论其自身质量多高。
 
 候选素材：
 {items_text}
@@ -62,6 +66,7 @@ def select_node(state: PipelineState) -> dict:
                 since=task.since,
                 until=task.until,
                 max_items=task.max_items,
+                focus_areas="\n".join(f"- {f}" for f in task.focus_areas) if task.focus_areas else "- 与主题高度相关的内容",
                 items_text=_format_items_compact(items),
             )},
             {"role": "user", "content": f"Select the best {task.max_items} items."},

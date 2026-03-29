@@ -43,16 +43,10 @@ def main():
         logger.error("Pipeline error: %s", result["error"])
         sys.exit(1)
 
-    json_path = result.get("json_path", "")
-    html_path = result.get("html_path", "")
-    pdf_path = result.get("pdf_path", "")
-
-    if json_path:
-        logger.info("Brief JSON: %s", json_path)
-    if html_path:
-        logger.info("HTML: %s", html_path)
-    if pdf_path:
-        logger.info("PDF: %s", pdf_path)
+    for fmt, key in [("JSON", "json_path"), ("HTML", "html_path"), ("PDF", "pdf_path"), ("PNG", "png_path")]:
+        path = result.get(key, "")
+        if path:
+            logger.info("%s: %s", fmt, path)
 
     logger.info("Done!")
 

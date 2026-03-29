@@ -80,23 +80,58 @@ def render_node(state: PipelineState) -> dict:
     )
     logger.info("Rendered HTML: %s", html_path)
 
-    pdf_path_str = None
+    md_path = output_dir / f"{prefix}_{ts}.md"
+    try:
+        md_template = env.get_template("report.md.j2")
+        md_text = md_template.render(
+            title=brief.title,
+            time_range=brief_data["time_range"],
+            sections=brief_data["sections"],
+            executive_summary=brief.executive_summary,
+            metadata=brief_data["metadata"],
+            brand_full_name=settings.brand.full_name,
+            brand_tagline=settings.brand.tagline,
+            brand_author=settings.brand.author,
+        )
+        md_path.write_text(md_text, encoding="utf-8")
+        logger.info("Rendered Markdown: %s", md_path)
+    except Exception as e:
+        logger.warning("Markdown render skipped: %s", e)
+
+    pdf_path_str = ""
+    png_path_str = ""
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            page.set_content(html, wait_until="networkidle")
+            browser = p.chromium.launch(channel="chrome")
+
+            pdf_page = browser.new_page()
+            pdf_page.set_content(html, wait_until="networkidle")
             pdf_out = output_dir / f"{prefix}_{ts}.pdf"
-            page.pdf(path=str(pdf_out), format="A4", print_background=True)
-            browser.close()
+            pdf_page.pdf(path=str(pdf_out), format="A4", print_background=True)
             pdf_path_str = str(pdf_out)
             logger.info("Exported PDF: %s", pdf_out)
+            pdf_page.close()
+
+            png_context = browser.new_context(
+                viewport={"width": 390, "height": 800},
+                device_scale_factor=2,
+            )
+            png_page = png_context.new_page()
+            png_page.set_content(html, wait_until="networkidle")
+            png_out = output_dir / f"{prefix}_{ts}.png"
+            png_page.screenshot(path=str(png_out), full_page=True)
+            png_path_str = str(png_out)
+            logger.info("Exported PNG (mobile long screenshot): %s", png_out)
+            png_page.close()
+
+            browser.close()
     except Exception as e:
-        logger.warning("PDF export skipped: %s", e)
+        logger.warning("PDF/PNG export skipped: %s", e)
 
     return {
         "html_path": str(html_path),
-        "pdf_path": pdf_path_str or "",
+        "pdf_path": pdf_path_str,
+        "png_path": png_path_str,
         "json_path": str(json_path),
     }

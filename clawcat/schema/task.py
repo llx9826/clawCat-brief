@@ -46,10 +46,10 @@ class TaskConfig(BaseModel):
     """
 
     topic: str
+    report_title: str = ""
     period: str = "daily"
     focus_areas: list[str] = []
     selected_sources: list[SourceSelection] = []
-    source_config: dict = {}
     report_structure: list[SectionPlan] = []
     tone: str = "professional"
     target_audience: str = "general"

@@ -18,8 +18,8 @@ github:
 
 proxy:
   enabled: false
-  http: ""
-  https: ""
+  http: ""     # e.g. "http://127.0.0.1:7890" — DuckDuckGo 等国际搜索源在国内需要代理
+  https: ""    # 同上，设置后 duckduckgo adapter 会自动使用
 
 # Data source configuration
 sources_config:

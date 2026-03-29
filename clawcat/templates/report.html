@@ -2,90 +2,101 @@
 
 {% block content %}
 
-{# Executive Summary #}
+{# ── Executive Summary ── #}
 {% if executive_summary %}
-<div class="text-center mb-6">
-    <div class="text-lg font-semibold text-primary leading-relaxed">
+<div class="summary-block">
+    <div class="text-sm font-medium leading-relaxed">
         {{ executive_summary }}
     </div>
 </div>
-<div class="divider"></div>
 {% endif %}
 
-{# ── Macro: standard item card (non-review) — shows verdict only ── #}
-{% macro render_item(item, accent_class="bg-base-100 border-base-300") %}
-<div class="card {{ accent_class }} border mb-3 shadow-sm">
-    <div class="card-body p-4">
-        <h3 class="card-title text-sm font-bold">{{ item.title }}</h3>
-        <p class="text-sm leading-relaxed">{{ item.summary }}</p>
+{# ── Macro: standard item card ── #}
+{% macro render_item(item, card_class="item-card") %}
+<div class="{{ card_class }} bg-white border border-gray-100 shadow-sm">
+    <div class="p-4">
+        <h3 class="text-sm font-bold leading-snug mb-1.5">{{ item.title }}</h3>
+        <p class="text-sm text-gray-600 leading-relaxed">{{ item.summary }}</p>
 
         {% if item.key_facts %}
-        <ul class="text-xs opacity-70 mt-1 space-y-0.5">
+        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2">
             {% for fact in item.key_facts %}
-            <li>• {{ fact }}</li>
+            <span class="text-xs text-gray-500">📌 {{ fact }}</span>
             {% endfor %}
-        </ul>
+        </div>
         {% endif %}
 
         {% if item.verdict %}
-        <p class="text-xs mt-2 opacity-80">🦞 {{ item.verdict }}</p>
+        <div class="verdict-badge">🦞 {{ item.verdict }}</div>
         {% endif %}
 
-        {% if item.tags %}
-        <div class="mt-2 flex flex-wrap gap-1">
-            {% for tag in item.tags %}
-            <span class="badge badge-ghost tag-badge">{{ tag }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
+        <div class="flex items-center justify-between mt-2.5">
+            {% if item.tags %}
+            <div class="flex flex-wrap gap-1">
+                {% for tag in item.tags %}
+                <span class="badge badge-ghost tag-badge">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div></div>
+            {% endif %}
 
-        {% if item.sources %}
-        <div class="text-xs opacity-50 mt-1">
-            📎 {{ item.sources | join(' · ') }}
+            {% if item.sources %}
+            <div class="source-link">
+                📎 {{ item.sources | join(' · ') }}
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endmacro %}
 
-{# ── Macro: review item card — shows full claw_comment ── #}
+{# ── Macro: review item card with claw_comment ── #}
 {% macro render_review_item(item) %}
-<div class="card bg-amber-50 border-amber-200 border mb-3 shadow-sm">
-    <div class="card-body p-4">
-        <h3 class="card-title text-sm font-bold">{{ item.title }}</h3>
-        <p class="text-sm leading-relaxed">{{ item.summary }}</p>
+<div class="item-card review-card border border-amber-100 shadow-sm">
+    <div class="p-4">
+        <h3 class="text-sm font-bold leading-snug mb-1.5">{{ item.title }}</h3>
+        <p class="text-sm text-gray-600 leading-relaxed">{{ item.summary }}</p>
 
         {% if item.key_facts %}
-        <ul class="text-xs opacity-70 mt-1 space-y-0.5">
+        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2">
             {% for fact in item.key_facts %}
-            <li>• {{ fact }}</li>
+            <span class="text-xs text-gray-500">📌 {{ fact }}</span>
             {% endfor %}
-        </ul>
+        </div>
         {% endif %}
 
         {% if item.claw_comment %}
-        <div class="claw-comment mt-2 text-sm">
-            <p><strong>🦞 Claw 锐评：</strong>{{ item.claw_comment.highlight }}</p>
+        <div class="claw-comment">
+            <p class="text-sm font-medium">🦞 {{ item.claw_comment.highlight }}</p>
             {% if item.claw_comment.concerns %}
-            <p class="text-xs opacity-70 mt-1">⚠️ {{ item.claw_comment.concerns | join('；') }}</p>
+            <div class="mt-1.5 space-y-0.5">
+                {% for concern in item.claw_comment.concerns %}
+                <p class="text-xs text-amber-700 opacity-80">⚠️ {{ concern }}</p>
+                {% endfor %}
+            </div>
             {% endif %}
-            <p class="font-semibold text-xs mt-1">📌 {{ item.claw_comment.verdict }}</p>
+            <p class="text-xs font-bold text-amber-800 mt-1.5">📌 {{ item.claw_comment.verdict }}</p>
         </div>
         {% endif %}
 
-        {% if item.tags %}
-        <div class="mt-2 flex flex-wrap gap-1">
-            {% for tag in item.tags %}
-            <span class="badge badge-ghost tag-badge">{{ tag }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
+        <div class="flex items-center justify-between mt-2.5">
+            {% if item.tags %}
+            <div class="flex flex-wrap gap-1">
+                {% for tag in item.tags %}
+                <span class="badge badge-ghost tag-badge">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div></div>
+            {% endif %}
 
-        {% if item.sources %}
-        <div class="text-xs opacity-50 mt-1">
-            📎 {{ item.sources | join(' · ') }}
+            {% if item.sources %}
+            <div class="source-link">
+                📎 {{ item.sources | join(' · ') }}
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endmacro %}
@@ -95,62 +106,45 @@
 
 {% set sec_type = section.section_type %}
 {% set sec_items = section["items"] %}
-{% set icons = {"hero": "🔥", "review": "🦞", "analysis": "📊", "items": "📦", "strategy": "📋"} %}
+{% set icons = {"hero": "🔥", "review": "🦞", "analysis": "📊", "items": "📰", "strategy": "📋"} %}
 {% set default_icon = icons.get(sec_type, "📰") %}
+{% set card_classes = {"hero": "item-card hero-card", "analysis": "item-card analysis-card"} %}
+{% set card_class = card_classes.get(sec_type, "item-card") %}
 
-{% if sec_type == 'strategy' %}
-{# Strategy: all items inside one shared card #}
-<div class="card bg-base-100 border border-base-300 mt-6 shadow-sm">
-    <div class="card-body p-4">
-        <h2 class="card-title text-base">{{ section.icon or default_icon }} {{ section.heading }}</h2>
-        {% if section.prose %}
-        <div class="mt-2 text-sm leading-relaxed">{{ section.prose }}</div>
-        {% endif %}
-        {% for item in sec_items %}
-        <div class="mt-3 pl-3 border-l-2 border-primary/30">
-            <h3 class="text-sm font-semibold">{{ item.title }}</h3>
-            <p class="text-xs leading-relaxed mt-0.5">{{ item.summary }}</p>
-        </div>
-        {% endfor %}
+<div class="mt-8">
+    <div class="section-header">
+        <div class="section-icon">{{ section.icon or default_icon }}</div>
+        <h2>{{ section.heading }}</h2>
     </div>
-</div>
 
-{% else %}
-{# Standard layout: section header + item cards #}
-<div class="mt-6">
-    <h2 class="text-base font-bold mb-3 flex items-center gap-2">
-        <span>{{ section.icon or default_icon }}</span>
-        <span>{{ section.heading }}</span>
-    </h2>
     {% if section.prose %}
-    <p class="text-sm leading-relaxed mb-3 opacity-80">{{ section.prose }}</p>
+    <div class="prose-block text-sm text-gray-600 leading-relaxed">
+        {{ section.prose }}
+    </div>
     {% endif %}
 
     {% for item in sec_items %}
         {% if sec_type == 'review' %}
             {{ render_review_item(item) }}
-        {% elif sec_type == 'hero' %}
-            {{ render_item(item, accent_class="bg-base-100 border-primary/30") }}
         {% else %}
-            {{ render_item(item) }}
+            {{ render_item(item, card_class=card_class) }}
         {% endif %}
     {% endfor %}
 </div>
-{% endif %}
 
 {% endfor %}
 
-{# Time coverage gaps #}
+{# ── Time coverage gaps ── #}
 {% if time_range and time_range.coverage_gaps %}
-<div class="alert alert-warning mt-6 text-xs">
-    <div>⚠️ 数据覆盖缺口：{{ time_range.coverage_gaps | join('；') }}</div>
+<div class="mt-8 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+    ⚠️ 数据覆盖缺口：{{ time_range.coverage_gaps | join('；') }}
 </div>
 {% endif %}
 
-{# Sources used #}
+{# ── Sources used ── #}
 {% if metadata and metadata.sources_used %}
-<div class="mt-6 text-xs opacity-60">
-    📎 数据来源：{{ metadata.sources_used | join(' · ') }}
+<div class="mt-6 text-xs text-gray-400 text-center">
+    数据来源：{{ metadata.sources_used | join(' · ') }}
 </div>
 {% endif %}
 

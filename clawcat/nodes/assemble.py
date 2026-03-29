@@ -14,8 +14,17 @@ from clawcat.state import PipelineState
 logger = logging.getLogger(__name__)
 
 SUMMARY_SYSTEM = """\
-根据以下报告各章节内容，撰写一段简明的全文摘要（2-3 句话），提炼最重要的结论。
-使用中文撰写，语言精炼、观点明确。
+根据以下报告各章节内容，撰写一段全文摘要（2-3 句话）。
+
+写作风格：{tone}
+目标读者：{target_audience}
+
+要求：
+- 第一句给出本期最重要的结论或判断
+- 第二句补充 1-2 个支撑论据（含具体数据）
+- 第三句给出前瞻性判断或行动建议
+- 禁止使用「值得关注」「不容忽视」等空洞表述
+- 使用中文撰写
 
 各章节概要：
 {sections_overview}
@@ -47,6 +56,8 @@ def assemble_node(state: PipelineState) -> dict:
         messages=[
             {"role": "system", "content": SUMMARY_SYSTEM.format(
                 sections_overview=sections_overview,
+                tone=task.tone,
+                target_audience=task.target_audience,
             )},
             {"role": "user", "content": "Write the executive summary."},
         ],
@@ -56,7 +67,7 @@ def assemble_node(state: PipelineState) -> dict:
     now = datetime.now()
     brief = Brief(
         report_type=task.period,
-        title=f"{task.topic} {'日报' if task.period == 'daily' else '周报'}",
+        title=task.report_title or f"{task.topic} · {'今日速递' if task.period == 'daily' else '每周概览'}",
         issue_label=now.strftime("%Y-%m-%d"),
         time_range=TimeRange(
             user_requested=f"{task.since} ~ {task.until}",
@@ -70,7 +81,7 @@ def assemble_node(state: PipelineState) -> dict:
             llm_model=get_model(),
             sources_used=[s.source_name for s in task.selected_sources],
             items_fetched=len(state.get("raw_items", [])),
-            items_selected=len(state.get("filtered_items", [])),
+            items_selected=state.get("selected_items").total_selected if state.get("selected_items") else 0,
         ),
     )
 

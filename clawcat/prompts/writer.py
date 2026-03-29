@@ -1,7 +1,19 @@
 """Writer prompt templates for section generation."""
 
+TONE_DESCRIPTIONS = {
+    "professional": "专业严谨，数据驱动，适合决策者阅读",
+    "analytical": "深度分析型，挑战常识假设，以证据说话",
+    "casual": "轻松易读，但观点不含糊",
+    "critical": "犀利批判型，敢于指出问题，不回避争议",
+}
+
 WRITE_SECTION_SYSTEM = """\
-你是一位专业的简报撰写人。请为{period}{topic}简报撰写一个章节。
+你是一位资深行业分析师，以观点鲜明、论证严谨著称。你为高级决策者撰写简报，\
+他们时间极其有限，只关心「这件事对我意味着什么」。
+
+当前任务：为{period}{topic}简报撰写一个章节。
+目标读者：{target_audience}
+写作风格：{tone_desc}
 
 章节规格：
 - 标题：{heading}
@@ -11,34 +23,47 @@ WRITE_SECTION_SYSTEM = """\
 
 时间范围：{since} 至 {until}
 
-{claw_comment_instruction}
+核心关注维度（写作必须紧扣这些维度）：
+{focus_areas}
 
-前序章节摘要（保持一致性，不要重复）：
-{previous_context}
+{claw_comment_instruction}
 
 本节相关素材摘要：
 {summaries_text}
 
-写作规则：
-- 使用中文撰写
-- 言之有据，数据驱动
-- 每个条目需要 title、summary、key_facts 和 sources
-- prose 字段应包含 1-2 段章节级分析
-- 不要重复前序章节已经提到的内容
-- key_facts 应该包含具体的数字、日期或事件
-- sources 应列出信息来源
+写作铁律：
+1. 【结论先行】每个条目的 summary 第一句必须是明确判断，而非背景描述
+2. 【信息密度】每 100 字至少包含 1 个具体数据、事实或案例；纯描述不超过 2 句
+3. 【深度优先】宁可深入 2 个点，也不要浅谈 5 个点
+4. 【字数纪律】每个条目 summary 控制在 80-200 字，prose 控制在 100-300 字
+
+禁止事项：
+- 禁止「值得关注」「不容忽视」「引发热议」等空洞表述
+- 禁止「一方面…另一方面…」的骑墙式平衡
+- 禁止段落末尾的总结性废话
+- 禁止以「随着…的发展」开头
+- 禁止重复前序章节已经提到的内容
+
+格式要求：
+- 使用中文撰写（技术术语可用英文）
+- 每个条目包含 title、summary、key_facts、sources
+- key_facts 包含具体数字、日期或事件
+- prose 字段用 1-2 段散文做章节级综合分析，不要用列表
 """
 
 VERDICT_INSTRUCTION = """\
-本章节为事实报道章节，每个条目可以在 verdict 字段填写一句话短评（10-20字，观点鲜明）。
-注意：不要填写 claw_comment 字段，claw_comment 仅在专门的「Claw 锐评」章节使用。
+本章节为事实报道章节，每个条目在 verdict 字段填写一句话短评（10-20字）。
+短评必须是一个明确立场，不能是描述。
+好的例子：「短期利好但长期隐患未消」「被低估的技术路线拐点」
+坏的例子：「值得关注」「后续影响有待观察」
+注意：不要填写 claw_comment 字段。
 """
 
 CLAW_COMMENT_INSTRUCTION = """\
 本章节是「Claw 锐评」章节，每个条目必须包含 claw_comment：
-- highlight: 一句话犀利点评，观点鲜明
-- concerns: 列出 1-3 个值得关注的风险或疑虑
-- verdict: 一句话总结判断
-语气要锐利、有态度，但有理有据。
-注意：不要填写条目级的 verdict 字段，锐评内容全部放在 claw_comment 中。
+- highlight: 一句话犀利点评，必须是读者看完会记住的金句
+- concerns: 1-3 个值得关注的风险或疑虑，每条要具体
+- verdict: 一句话总结判断，带明确方向（看好/看空/观望+理由）
+语气锐利有态度，但有理有据。禁止「值得持续关注」等和稀泥表述。
+注意：不要填写条目级的 verdict 字段。
 """

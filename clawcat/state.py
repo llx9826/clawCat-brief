@@ -47,11 +47,13 @@ class PipelineState(TypedDict, total=False):
     json_path: str
     html_path: str
     pdf_path: str
+    png_path: str
 
     # Fan-out control (set by Send routers)
     _section_idx: int
 
     # Control flow
     retry_sections: list[int]
+    check_issues: dict[int, str]
     gate_verdict: str
     error: str

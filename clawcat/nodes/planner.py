@@ -51,11 +51,10 @@ def planner_node(state: PipelineState) -> dict:
             model=get_model(),
             response_model=TaskConfig,
             messages=[
-                {"role": "system", "content": PLANNER_SYSTEM.format(
-                    registry=registry,
-                    user_profile=profile.model_dump_json(),
-                    today=today,
-                )},
+                {"role": "system", "content": PLANNER_SYSTEM
+                    .replace("{{registry}}", registry)
+                    .replace("{{user_profile}}", profile.model_dump_json())
+                    .replace("{{today}}", today)},
                 {"role": "user", "content": user_input},
             ],
             max_retries=get_max_retries(),

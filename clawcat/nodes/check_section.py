@@ -38,21 +38,27 @@ def check_sections_node(state: PipelineState) -> dict:
 
     checked: list[BriefSection] = []
     retry_indices: list[int] = []
+    check_issues: dict[int, str] = {}
 
     for i, section in enumerate(sections):
         section_text = section.model_dump_json()
         hard_passed = True
+        section_issues: list[str] = []
 
         for checker in hard_checkers:
             try:
                 result = checker.check(section_text, items)
                 if not result.passed:
+                    checker_name = checker.__class__.__name__
                     logger.warning(
                         "Section %d (%s) failed %s: score=%.2f, issues=%d",
-                        i, section.heading, checker.__class__.__name__,
+                        i, section.heading, checker_name,
                         result.score, len(result.issues),
                     )
                     hard_passed = False
+                    section_issues.extend(
+                        f"[{checker_name}] {issue}" for issue in result.issues
+                    )
             except Exception as e:
                 logger.warning("Checker %s error on section %d: %s",
                                checker.__class__.__name__, i, e)
@@ -71,6 +77,7 @@ def check_sections_node(state: PipelineState) -> dict:
 
         if not hard_passed:
             retry_indices.append(i)
+            check_issues[i] = "\n".join(section_issues)
         checked.append(section)
 
     logger.info("Checked %d sections: %d passed, %d need retry",
@@ -78,4 +85,5 @@ def check_sections_node(state: PipelineState) -> dict:
     return {
         "checked_sections": checked,
         "retry_sections": retry_indices,
+        "check_issues": check_issues,
     }

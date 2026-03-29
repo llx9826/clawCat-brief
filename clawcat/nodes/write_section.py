@@ -9,7 +9,10 @@ from __future__ import annotations
 import logging
 
 from clawcat.llm import get_instructor_client, get_model, get_max_retries
-from clawcat.prompts.writer import CLAW_COMMENT_INSTRUCTION, VERDICT_INSTRUCTION, WRITE_SECTION_SYSTEM
+from clawcat.prompts.writer import (
+    CLAW_COMMENT_INSTRUCTION, VERDICT_INSTRUCTION,
+    WRITE_SECTION_SYSTEM, TONE_DESCRIPTIONS,
+)
 from clawcat.schema.brief import BriefSection
 from clawcat.state import PipelineState
 
@@ -39,6 +42,9 @@ def write_one_section_node(state: PipelineState) -> dict:
     else:
         section_instruction = VERDICT_INSTRUCTION
 
+    tone_desc = TONE_DESCRIPTIONS.get(task.tone, TONE_DESCRIPTIONS["professional"])
+    focus_text = "\n".join(f"- {f}" for f in task.focus_areas) if task.focus_areas else "- 与主题高度相关的内容"
+
     section = client.chat.completions.create(
         model=get_model(),
         response_model=BriefSection,
@@ -52,8 +58,10 @@ def write_one_section_node(state: PipelineState) -> dict:
                 item_count=plan.suggested_item_count,
                 since=task.since,
                 until=task.until,
+                target_audience=task.target_audience,
+                tone_desc=tone_desc,
+                focus_areas=focus_text,
                 claw_comment_instruction=section_instruction,
-                previous_context="(sections are written in parallel)",
                 summaries_text=summaries_text,
             )},
             {"role": "user", "content": f"Write section: {plan.heading}"},

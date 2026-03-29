@@ -1,0 +1,52 @@
+# {{ title }}
+
+> {{ time_range.resolved_start[:10] }} — {{ time_range.resolved_end[:10] }} | 采集 {{ metadata.items_fetched }} · 入选 {{ metadata.items_selected }} · 数据源 {{ metadata.sources_used | length }}
+
+---
+
+{{ executive_summary }}
+
+---
+
+{% for section in sections %}
+{% set sec_items = section["items"] %}
+{% set icons = {"hero": "🔥", "review": "🦞", "analysis": "📊", "items": "📰", "strategy": "📋"} %}
+## {{ icons.get(section.section_type, "📰") }} {{ section.heading }}
+
+{% if section.prose %}
+*{{ section.prose }}*
+
+{% endif %}
+{% for item in sec_items %}
+### {{ item.title }}
+
+{{ item.summary }}
+
+{% if item.key_facts %}
+{% for fact in item.key_facts %}
+- 📌 {{ fact }}
+{% endfor %}
+
+{% endif %}
+{% if item.claw_comment %}
+> 🦞 **Claw 锐评：** {{ item.claw_comment.highlight }}
+{% if item.claw_comment.concerns %}
+{% for concern in item.claw_comment.concerns %}
+> ⚠️ {{ concern }}
+{% endfor %}
+{% endif %}
+> 📌 **{{ item.claw_comment.verdict }}**
+
+{% elif item.verdict %}
+> 🦞 {{ item.verdict }}
+
+{% endif %}
+{% if item.sources %}
+<sub>📎 {{ item.sources | join(' · ') }}</sub>
+
+{% endif %}
+{% endfor %}
+---
+
+{% endfor %}
+<sub>{{ brand_full_name }} · {{ brand_tagline }} · {{ brand_author }}</sub>

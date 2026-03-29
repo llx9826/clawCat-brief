@@ -19,10 +19,15 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 5
 
 SUMMARIZE_SYSTEM = """\
-你是一位新闻分析师。请用 2-3 句话摘要每条素材，重点关注：
-- 发生了什么、为什么重要
-- 关键数字或数据
-- 影响范围和对象
+你是一位行业分析师。请用 2-3 句话摘要每条素材。
+
+关注维度（摘要必须紧扣）：
+{focus_areas}
+
+摘要要求：
+- 第一句说清「发生了什么」+ 关键数据
+- 第二句说清「为什么重要」或「对谁有影响」
+- 如果素材与关注维度无关，摘要开头标注「[边缘]」
 
 返回 JSON 数组，每条素材一个摘要。
 """
@@ -45,9 +50,13 @@ def get_selected_items(state: PipelineState) -> list[Item]:
 def summarize_batch_node(state: PipelineState) -> dict:
     """Summarize a single batch of items (called in parallel via Send)."""
     items: list[Item] = state.get("filtered_items", [])
+    task = state.get("task_config")
 
     if not items:
         return {"summaries": []}
+
+    focus_areas = task.focus_areas if task and task.focus_areas else []
+    focus_text = "\n".join(f"- {f}" for f in focus_areas) if focus_areas else "- 与主题高度相关的内容"
 
     client = get_instructor_client()
 
@@ -60,7 +69,7 @@ def summarize_batch_node(state: PipelineState) -> dict:
         model=get_model(),
         response_model=BatchSummary,
         messages=[
-            {"role": "system", "content": SUMMARIZE_SYSTEM},
+            {"role": "system", "content": SUMMARIZE_SYSTEM.format(focus_areas=focus_text)},
             {"role": "user", "content": items_text},
         ],
         max_retries=get_max_retries(),

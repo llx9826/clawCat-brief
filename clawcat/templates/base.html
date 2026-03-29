@@ -7,81 +7,240 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+        :root {
+            --brand-gradient: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #8e2215 100%);
+            --accent-gradient: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+            letter-spacing: 0.01em;
+            line-height: 1.7;
+        }
+
         @media print {
             body { background: white !important; }
             .no-print { display: none !important; }
             .page-break { page-break-before: always; }
         }
+
+        .brand-header {
+            background: var(--brand-gradient);
+            border-radius: 0 0 1.5rem 1.5rem;
+            padding: 2rem 1.5rem 1.75rem;
+            color: white;
+            text-align: center;
+        }
+
+        .brand-header h1 {
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: -1rem auto 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: fit-content;
+            position: relative;
+            z-index: 10;
+        }
+
+        .stats-bar .stat-item {
+            text-align: center;
+        }
+
+        .stats-bar .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #e74c3c;
+        }
+
+        .stats-bar .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.5;
+        }
+
+        .summary-block {
+            background: linear-gradient(135deg, #fef9f0 0%, #fef0e6 100%);
+            border-left: 4px solid #e74c3c;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header .section-icon {
+            font-size: 1.25rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fef0e6;
+            border-radius: 0.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .item-card {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .item-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .hero-card {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .review-card {
+            border-left: 4px solid #f39c12;
+            background: linear-gradient(135deg, #fffef5 0%, #fef9f0 100%);
+        }
+
+        .analysis-card {
+            border-left: 4px solid #3498db;
+        }
+
         .claw-comment {
-            border-left: 3px solid oklch(var(--p));
-            padding-left: 0.75rem;
+            background: rgba(243, 156, 18, 0.08);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
             margin-top: 0.5rem;
         }
+
+        .verdict-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #8b3a0e;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            margin-top: 0.5rem;
+        }
+
         .tag-badge {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+        }
+
+        .source-link {
+            opacity: 0.45;
+            font-size: 0.65rem;
+            transition: opacity 0.2s;
+        }
+
+        .source-link:hover {
+            opacity: 0.8;
+        }
+
+        .footer-brand {
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .footer-divider {
+            height: 3px;
+            background: var(--brand-gradient);
+            border-radius: 2px;
+            margin: 0 auto 1.5rem;
+            width: 60px;
+        }
+
+        .prose-block {
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid #e0e0e0;
+            margin-bottom: 0.75rem;
+            font-style: italic;
+            opacity: 0.85;
         }
     </style>
 </head>
-<body class="bg-base-200 text-base-content">
+<body class="bg-gray-50 text-gray-800">
 
-<div class="max-w-[720px] mx-auto px-4 py-8">
+<div class="max-w-[720px] mx-auto">
 
 {% block header %}
-<div class="text-center mt-6">
+<div class="brand-header">
     {% if luna_logo_b64 %}
-    <img src="data:image/png;base64,{{ luna_logo_b64 }}" alt="Luna" class="w-16 h-auto mx-auto mb-3">
+    <img src="data:image/png;base64,{{ luna_logo_b64 }}" alt="Logo" class="w-14 h-auto mx-auto mb-2 opacity-90">
     {% else %}
-    <div class="mb-3"><span class="text-5xl">🦞</span></div>
+    <div class="mb-2"><span class="text-4xl">🦞</span></div>
     {% endif %}
 
-    <h1 class="text-xl font-bold">
-        {{ title }}
-        <span class="badge badge-outline badge-sm ml-2 align-middle font-mono">{{ issue_label }}</span>
-    </h1>
+    <h1 class="text-xl font-bold tracking-wide">{{ title }}</h1>
 
     {% if time_range %}
-    <p class="text-sm opacity-60 mt-1 font-mono">
-        {{ time_range.resolved_start[:10] }} ~ {{ time_range.resolved_end[:10] }} · {{ generated_at }}
+    <p class="text-xs opacity-75 mt-1 font-mono tracking-wider">
+        {{ time_range.resolved_start[:10] }} — {{ time_range.resolved_end[:10] }}
     </p>
     {% endif %}
+    <p class="text-xs opacity-60 mt-0.5">{{ generated_at }}</p>
 </div>
-
-<div class="divider"></div>
 {% endblock %}
 
 {% block stats %}
 {% if metadata %}
-<div class="flex justify-center gap-6 py-3 mb-4">
-    <div class="text-center">
-        <div class="text-lg font-bold font-mono text-primary">{{ metadata.items_fetched }}</div>
-        <div class="text-xs opacity-50 uppercase tracking-wider">fetched</div>
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-value">{{ metadata.items_fetched }}</div>
+        <div class="stat-label">采集</div>
     </div>
-    <div class="text-center">
-        <div class="text-lg font-bold font-mono text-primary">{{ metadata.items_selected }}</div>
-        <div class="text-xs opacity-50 uppercase tracking-wider">selected</div>
+    <div class="stat-item">
+        <div class="stat-value">{{ metadata.items_selected }}</div>
+        <div class="stat-label">入选</div>
     </div>
-    <div class="text-center">
-        <div class="text-lg font-bold font-mono text-primary">{{ metadata.sources_used | length }}</div>
-        <div class="text-xs opacity-50 uppercase tracking-wider">sources</div>
+    <div class="stat-item">
+        <div class="stat-value">{{ metadata.sources_used | length }}</div>
+        <div class="stat-label">数据源</div>
     </div>
 </div>
 {% endif %}
 {% endblock %}
 
+<div class="px-4 pb-8">
 {% block content %}{% endblock %}
 
-<footer class="text-center mt-12 pb-8">
-    <div class="divider">
-        {% if luna_logo_b64 %}
-        <img src="data:image/png;base64,{{ luna_logo_b64 }}" alt="Luna" class="w-5 h-5 opacity-60">
-        {% else %}
-        🦞
-        {% endif %}
-    </div>
-    <p class="text-xs font-semibold opacity-70">{{ brand_full_name }}</p>
-    <p class="text-xs opacity-50 mt-0.5">{{ brand_tagline }} · {{ brand_author }}</p>
+<footer class="footer-brand">
+    <div class="footer-divider"></div>
+    {% if luna_logo_b64 %}
+    <img src="data:image/png;base64,{{ luna_logo_b64 }}" alt="Logo" class="w-6 h-auto mx-auto mb-2 opacity-50">
+    {% else %}
+    <div class="text-2xl mb-1 opacity-40">🦞</div>
+    {% endif %}
+    <p class="text-xs font-semibold opacity-60">{{ brand_full_name }}</p>
+    <p class="text-xs opacity-40 mt-0.5">{{ brand_tagline }} · {{ brand_author }}</p>
 </footer>
+</div>
 
 </div>
 

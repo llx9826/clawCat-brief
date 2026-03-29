@@ -19,7 +19,7 @@ def get_instructor_client():
         base_url=settings.llm.base_url,
         timeout=settings.llm.timeout,
     )
-    return instructor.from_openai(raw, mode=instructor.Mode.JSON)
+    return instructor.from_openai(raw, mode=instructor.Mode.MD_JSON)
 
 
 def get_model() -> str:
